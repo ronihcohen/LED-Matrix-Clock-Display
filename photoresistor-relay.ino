@@ -1,7 +1,4 @@
-/* Use a photoresistor (or photocell) to turn on an LED in the dark
-   More info and circuit schematic: http://www.ardumotive.com/how-to-use-a-photoresistor-en.html
-   Dev: Michalis Vasilakis // Date: 8/6/2015 // www.ardumotive.com */
-   
+/* Use a photoresistor (or photocell) to turn on an relay with a screen */
 
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -17,12 +14,6 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 //Constants
 const int analogPin = A0;  // Analog pin connected to your sensor
-const int threshold = 1000;   // Threshold value for triggering action
-const unsigned long durationThreshold = 10000;  // 10 seconds threshold
-
-unsigned long startTime = 0; // Variable to store the start time
-bool aboveThreshold = false;  // Flag to indicate if the value is above threshold
-
 const int ledPin=9;       // Led pin at Arduino pin 9
 
 void setup(){
@@ -52,35 +43,23 @@ void setup(){
 
 void loop(){
   int sensorValue = analogRead(analogPin); // Read the analog value
-  bool currentValueAboveThreshold = (sensorValue > threshold); // Check if current value is above threshold
 
   display.clearDisplay();
   display.setCursor(0, 0);
   display.print(sensorValue);
   display.display();
-  delay(500); // Pause for 2 seconds
+  delay(500);
 
-   Serial.print(sensorValue);
-   Serial.println();
+  Serial.print(sensorValue);
+  Serial.println();
 
-  if (currentValueAboveThreshold && !aboveThreshold) {
-    // Transition from below to above threshold
-    startTime = millis(); // Record start time
-    aboveThreshold = true; // Update flag
+  if (sensorValue > 1000) {
+    digitalWrite(ledPin, HIGH);
   }
 
-  if (!currentValueAboveThreshold && aboveThreshold) {
-    // Transition from above to below threshold
-    aboveThreshold = false; // Update flag
+  if (sensorValue > 900 && sensorValue < 950) {
+    digitalWrite(ledPin, LOW);
   }
 
-  if (aboveThreshold && (millis() - startTime >= durationThreshold)) {
-    // If the value has been above threshold for 10 seconds
-    digitalWrite(ledPin, LOW);  //Turn led off
-  }
-  else {
-    digitalWrite(ledPin, HIGH); //Turn led on
-  }
-
-  delay(500); //Small delay
+  delay(500);
 }
